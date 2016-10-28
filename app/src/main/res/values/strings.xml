@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">mobile_sensor_display</string>
+    <string name="start_exercise">Start Tracking Exercise Efficiency</string>
+    <string name="stop_exercise">Stop Tracking Exercise Efficiency</string>
 </resources>
