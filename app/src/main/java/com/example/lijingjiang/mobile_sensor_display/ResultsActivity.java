@@ -9,15 +9,21 @@ import com.google.android.apps.simplepedometer.R;
 public class ResultsActivity extends AppCompatActivity {
 
     private static final String TEXT_NUM_STEPS = "Number of Steps: ";
+    private static final String DISTANCES = "Distances: ";
     private TextView stepsTextView;
+    private TextView distancesTextView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_results);
 
         int numSteps = getIntent().getIntExtra("num_steps", 0);
-        stepsTextView = (TextView) findViewById(R.id.steps_result);
-        stepsTextView.setText(TEXT_NUM_STEPS + numSteps);
+        String distances = getIntent().getStringExtra("distance_travels");
 
+        stepsTextView = (TextView) findViewById(R.id.steps_result);
+        distancesTextView = (TextView) findViewById(R.id.distances_result);
+        stepsTextView.setText(TEXT_NUM_STEPS + numSteps);
+        distancesTextView.setText(DISTANCES + distances);
     }
 }

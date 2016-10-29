@@ -41,6 +41,8 @@ import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.api.GoogleApiClient;
 
+import java.sql.SQLOutput;
+
 import static com.google.android.apps.simplepedometer.R.layout.activity_results;
 
 public class SimplePedometerActivity extends Activity implements SensorEventListener, StepListener {
@@ -50,6 +52,8 @@ public class SimplePedometerActivity extends Activity implements SensorEventList
     private Sensor accel;
     private static final String TEXT_NUM_STEPS = "Number of Steps: ";
     private int numSteps;
+    private String distanceResult;
+
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -60,6 +64,12 @@ public class SimplePedometerActivity extends Activity implements SensorEventList
      * The following part is intented for distance sensor logic
      */
     private TextView resultView;
+
+    /**
+     * Two buttons for interaction
+     */
+    private Button startButton;
+    private Button stopButton;
 
     /**
      * we use the gps location to measure the distance of user travelled
@@ -75,7 +85,7 @@ public class SimplePedometerActivity extends Activity implements SensorEventList
     private String locationProvider;
     private boolean firstLocationFlag = false;
     private long minTimeMs = 100;
-    private long minDistanceMeters = 1;
+    private float minDistanceMeters = 0.1f;
 
 
     @Override
@@ -102,6 +112,11 @@ public class SimplePedometerActivity extends Activity implements SensorEventList
         // Attach Location Manager
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 
+        startButton = (Button) findViewById(R.id.start_button);
+        stopButton = (Button) findViewById(R.id.stop_button);
+
+        startButton.setEnabled(true);
+        stopButton.setEnabled(true);
 
         if (!canAccessLocation()) {
             requestPermissions(INITIAL_PERMS, INITIAL_REQUEST);
@@ -112,15 +127,14 @@ public class SimplePedometerActivity extends Activity implements SensorEventList
             @Override
             public void onLocationChanged(Location location) {
 
+                System.out.println("!!!!!!it has changed!!!!!!!");
+
                 float[] results = new float[3];
                 if(lastKnown != null && startLocation != null) {
                     if (ActivityCompat.checkSelfPermission(getApplicationContext(),
                             Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                         return;
                     }
-
-                    // Stop periodic location updates
-                    locationManager.removeUpdates(locationListener);
 
                     // Calculate distance between startLocation and lastKnown and store in results[]
                     Location.distanceBetween(startLocation.getLatitude(), startLocation.getLongitude(),
@@ -162,7 +176,6 @@ public class SimplePedometerActivity extends Activity implements SensorEventList
                 getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, minTimeMs, minDistanceMeters, locationListener);
 
         /**
          * Choose the network listener on default
@@ -174,11 +187,7 @@ public class SimplePedometerActivity extends Activity implements SensorEventList
         locationProvider = LocationManager.NETWORK_PROVIDER;
         lastKnown = locationManager.getLastKnownLocation(locationProvider);
 
-        // Start Retrieving Location Updates from NETWORK_PROVIDER
-        if (ActivityCompat.checkSelfPermission(
-                getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
+
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, minTimeMs, minDistanceMeters, locationListener);
 
     }
@@ -258,6 +267,12 @@ public class SimplePedometerActivity extends Activity implements SensorEventList
         // handle null pointer exception when the app is setup the gps location in the backend
         firstLocationFlag = true;
 
+        /**
+         * Set button for better interaction
+         */
+        startButton.setEnabled(false);
+        stopButton.setEnabled(true);
+
 
         // every time start, you should restart it
         resultView.setText(R.string.zero);
@@ -272,6 +287,10 @@ public class SimplePedometerActivity extends Activity implements SensorEventList
         /**
          * The following logic is used to process the distance display logic
          */
+
+        // enable the button again
+        startButton.setEnabled(true);
+        stopButton.setEnabled(true);
 
         float[] results = new float[3];
         if(lastKnown != null && startLocation != null) {
@@ -288,13 +307,16 @@ public class SimplePedometerActivity extends Activity implements SensorEventList
                     lastKnown.getLatitude(), lastKnown.getLongitude(), results);
         }
 
-        // display results
-        resultView.setText((String.valueOf(results[0])));
 
+        distanceResult = String.valueOf(results[0]);
+
+        // clear the result for restart
+        resultView.setText(R.string.zero);
 
         sensorManager.unregisterListener(this);
         Intent intent = new Intent(this, ResultsActivity.class);
         intent.putExtra("num_steps",numSteps);
+        intent.putExtra("distance_travels",distanceResult);
         startActivity(intent);
     }
 
