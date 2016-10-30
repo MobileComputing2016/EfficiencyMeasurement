@@ -80,12 +80,13 @@ public class SimplePedometerActivity extends Activity implements SensorEventList
     private LocationListener locationListener;
 
     /**
-     * Location Provider, must set it as the network so the result is more precise
+     * Location Provider, must set it as the network since there is no gps sensor on pixel c
      */
     private String locationProvider;
     private boolean firstLocationFlag = false;
     private long minTimeMs = 100;
     private float minDistanceMeters = 0.1f;
+    private double accumulatedDistance = 0.0;
 
 
     @Override
@@ -127,7 +128,6 @@ public class SimplePedometerActivity extends Activity implements SensorEventList
             @Override
             public void onLocationChanged(Location location) {
 
-                System.out.println("!!!!!!it has changed!!!!!!!");
 
                 float[] results = new float[3];
                 if(lastKnown != null && startLocation != null) {
@@ -142,7 +142,8 @@ public class SimplePedometerActivity extends Activity implements SensorEventList
                 }
 
                 // display results
-                resultView.setText((String.valueOf(results[0])));
+                accumulatedDistance += results[0];
+                resultView.setText((String.valueOf(accumulatedDistance)));
 
                 if (isBetterLocation(location, lastKnown)) {
 
@@ -183,11 +184,12 @@ public class SimplePedometerActivity extends Activity implements SensorEventList
         // setup UI
         resultView.setText(R.string.zero);
 
-        // Set up location management for NETWORK_PROVIDER
+        // change to GPS_PROVIDER when we get gps sensor
         locationProvider = LocationManager.NETWORK_PROVIDER;
         lastKnown = locationManager.getLastKnownLocation(locationProvider);
 
 
+        // change the following gps provider when we get gps
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, minTimeMs, minDistanceMeters, locationListener);
 
     }
@@ -308,15 +310,15 @@ public class SimplePedometerActivity extends Activity implements SensorEventList
         }
 
 
-        distanceResult = String.valueOf(results[0]);
-
+        accumulatedDistance += results[0];
+        resultView.setText((String.valueOf(accumulatedDistance)));
         // clear the result for restart
         resultView.setText(R.string.zero);
 
         sensorManager.unregisterListener(this);
         Intent intent = new Intent(this, ResultsActivity.class);
         intent.putExtra("num_steps",numSteps);
-        intent.putExtra("distance_travels",distanceResult);
+        intent.putExtra("distance_travels",accumulatedDistance);
         startActivity(intent);
     }
 
