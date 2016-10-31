@@ -59,6 +59,7 @@ import com.google.android.gms.maps.GoogleMap;
 
 import java.sql.SQLOutput;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
 import java.util.Date;
 
 import static com.google.android.apps.simplepedometer.R.layout.activity_main;
@@ -177,7 +178,7 @@ public class SimplePedometerActivity extends Activity implements SensorEventList
 
                 // display results
                 accumulatedDistance += results[0];
-                resultView.setText((String.valueOf(accumulatedDistance)));
+                //resultView.setText((String.valueOf(accumulatedDistance)));
 
                 if (isBetterLocation(location, lastKnown)) {
 
@@ -390,6 +391,7 @@ public class SimplePedometerActivity extends Activity implements SensorEventList
         Intent intent = new Intent(this, ResultsActivity.class);
         intent.putExtra("num_steps", numSteps);
         intent.putExtra("distance_travels", accumulatedDistance);
+        intent.putExtra("google_distance_traveled", accumulatedLocationCalculatedFromGoogle);
         intent.putExtra("time_elapsed", timeElapsed);
         startActivity(intent);
     }
@@ -542,6 +544,8 @@ public class SimplePedometerActivity extends Activity implements SensorEventList
         if (results[0] > 1) {
             accumulatedLocationCalculatedFromGoogle += results[0];
         }
+        DecimalFormat four = new DecimalFormat("#0.0000");
+        resultView.setText(four.format(accumulatedLocationCalculatedFromGoogle));
         Toast.makeText(this, "moved: " + accumulatedLocationCalculatedFromGoogle, Toast.LENGTH_SHORT).show();
         previousLocation = location;
     }

@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 public class ResultsActivity extends AppCompatActivity {
 
     private static final String TEXT_NUM_STEPS = "Number of Steps: ";
-    private static final String DISTANCES = "Distances: ";
+    private static final String DISTANCES = "Distance traveled: ";
     private static final String TIME = "Time Elapsed: ";
     private TextView stepsTextView;
     private TextView distancesTextView;
@@ -27,7 +27,7 @@ public class ResultsActivity extends AppCompatActivity {
         int numSteps = getIntent().getIntExtra("num_steps", 0);
         long timeElapsed = getIntent().getLongExtra("time_elapsed", 0);
         double defaultValue = 0.0;
-        double distances = getIntent().getDoubleExtra("distance_travels", defaultValue);
+        double distances = getIntent().getDoubleExtra("google_distance_traveled", defaultValue);
         System.out.println(distances);
         DecimalFormat four = new DecimalFormat("#0.0000");
 
@@ -39,6 +39,6 @@ public class ResultsActivity extends AppCompatActivity {
         timeTextView = (TextView) findViewById(R.id.time_result);
         timeTextView.setText(TIME + minutes + " minutes " + diffInSeconds % 60 + " seconds");
         stepsTextView.setText(TEXT_NUM_STEPS + numSteps);
-        distancesTextView.setText(DISTANCES + four.format(distances));
+        distancesTextView.setText(DISTANCES + four.format(distances) + "meters");
     }
 }
