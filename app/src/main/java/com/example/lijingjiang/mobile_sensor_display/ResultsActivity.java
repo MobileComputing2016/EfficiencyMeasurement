@@ -18,6 +18,8 @@ public class ResultsActivity extends AppCompatActivity {
     private TextView stepsTextView;
     private TextView distancesTextView;
     private TextView timeTextView;
+    private TextView cadenceTextView;
+    private TextView strideTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +39,11 @@ public class ResultsActivity extends AppCompatActivity {
         stepsTextView = (TextView) findViewById(R.id.steps_result);
         distancesTextView = (TextView) findViewById(R.id.distances_result);
         timeTextView = (TextView) findViewById(R.id.time_result);
+        cadenceTextView = (TextView) findViewById(R.id.cadence);
+        strideTextView = (TextView) findViewById(R.id.stride);
+
+        cadenceTextView.setText("Cadence: " + numSteps / diffInSeconds + " steps/sec");
+        strideTextView.setText("Stride: " + distances / numSteps + " meters/step");
         timeTextView.setText(TIME + minutes + " minutes " + diffInSeconds % 60 + " seconds");
         stepsTextView.setText(TEXT_NUM_STEPS + numSteps);
         distancesTextView.setText(DISTANCES + four.format(distances) + "meters");

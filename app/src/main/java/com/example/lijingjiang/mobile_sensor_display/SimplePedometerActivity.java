@@ -241,14 +241,15 @@ public class SimplePedometerActivity extends Activity implements SensorEventList
         // Create the LocationRequest object
         mLocationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                .setInterval(5000)        // 100 milliseconds
-                .setFastestInterval(5000); // 10 milliseconds
+                .setInterval(2000)        // 100 milliseconds
+                .setFastestInterval(2000); // 10 milliseconds
     }
 
     @Override
     public void onResume() {
         super.onResume();
         numSteps = 0;
+        accumulatedLocationCalculatedFromGoogle = 0;
         textView.setText(TEXT_NUM_STEPS + numSteps);
 
         /**
@@ -349,8 +350,12 @@ public class SimplePedometerActivity extends Activity implements SensorEventList
         resultView.setText(R.string.zero);
 
         numSteps = 0;
+        accumulatedLocationCalculatedFromGoogle = 0;
         textView.setText(TEXT_NUM_STEPS + numSteps);
         sensorManager.registerListener(this, accel, SensorManager.SENSOR_DELAY_NORMAL);
+
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+
     }
 
     // pass collected data to result activity for analysis
@@ -482,7 +487,6 @@ public class SimplePedometerActivity extends Activity implements SensorEventList
 
         previousLocation = location;
 
-        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         if (location == null) {
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
 
