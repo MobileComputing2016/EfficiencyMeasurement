@@ -57,6 +57,7 @@ import com.google.android.gms.maps.GoogleMap;
 
 import java.sql.SQLOutput;
 
+import static com.google.android.apps.simplepedometer.R.layout.activity_main;
 import static com.google.android.apps.simplepedometer.R.layout.activity_results;
 
 public class SimplePedometerActivity extends Activity implements SensorEventListener, StepListener, ConnectionCallbacks, OnConnectionFailedListener, com.google.android.gms.location.LocationListener{
@@ -112,6 +113,11 @@ public class SimplePedometerActivity extends Activity implements SensorEventList
     private LocationRequest mLocationRequest;
     private double currentLatitude;
     private double currentLongitude;
+
+    private Location previousLocation;
+    private Location currentLocation;
+
+    private double accumulatedLocationCalculatedFromGoogle = 0.0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -230,8 +236,8 @@ public class SimplePedometerActivity extends Activity implements SensorEventList
         // Create the LocationRequest object
         mLocationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                .setInterval(100)        // 100 milliseconds
-                .setFastestInterval(19); // 10 milliseconds
+                .setInterval(5000)        // 100 milliseconds
+                .setFastestInterval(5000); // 10 milliseconds
     }
 
     @Override
@@ -459,6 +465,9 @@ public class SimplePedometerActivity extends Activity implements SensorEventList
     public void onConnected(@Nullable Bundle bundle) {
         Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
 
+        previousLocation = location;
+
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
         if (location == null) {
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
 
@@ -507,9 +516,20 @@ public class SimplePedometerActivity extends Activity implements SensorEventList
 
     @Override
     public void onLocationChanged(Location location) {
+        System.out.println("location changed");
         currentLatitude = location.getLatitude();
         currentLongitude = location.getLongitude();
 
-        Toast.makeText(this, currentLatitude + " WORKS " + currentLongitude + "", Toast.LENGTH_LONG).show();
+//        Toast.makeText(this, currentLatitude + " WORKS " + currentLongitude + "", Toast.LENGTH_LONG).show();
+        currentLocation = location;
+
+        float[] results = new float[3];
+        Location.distanceBetween(previousLocation.getLatitude(), previousLocation.getLongitude(),
+                currentLocation.getLatitude(), currentLocation.getLongitude(), results);
+        if (results[0] > 1) {
+            accumulatedLocationCalculatedFromGoogle += results[0];
+        }
+        Toast.makeText(this, "moved: " + accumulatedLocationCalculatedFromGoogle, Toast.LENGTH_SHORT).show();
+        previousLocation = location;
     }
 }
