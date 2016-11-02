@@ -26,11 +26,19 @@ public class ResultsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_results);
 
+        /**
+         * Collecting data from previous activity
+         */
         int numSteps = getIntent().getIntExtra("num_steps", 0);
+
         long timeElapsed = getIntent().getLongExtra("time_elapsed", 0);
+
         double defaultValue = 0.0;
         double distances = getIntent().getDoubleExtra("google_distance_traveled", defaultValue);
-        System.out.println(distances);
+
+        /**
+         * Data format to visualize the float number
+         */
         DecimalFormat four = new DecimalFormat("#0.0000");
 
         long diffInSeconds = TimeUnit.MILLISECONDS.toSeconds(timeElapsed);
@@ -42,7 +50,7 @@ public class ResultsActivity extends AppCompatActivity {
         cadenceTextView = (TextView) findViewById(R.id.cadence);
         strideTextView = (TextView) findViewById(R.id.stride);
 
-        cadenceTextView.setText("Cadence: " + numSteps / diffInSeconds + " steps/sec");
+        cadenceTextView.setText("Cadence: " + (double)numSteps / diffInSeconds + " steps/sec");
         strideTextView.setText("Stride: " + distances / numSteps + " meters/step");
         timeTextView.setText(TIME + minutes + " minutes " + diffInSeconds % 60 + " seconds");
         stepsTextView.setText(TEXT_NUM_STEPS + numSteps);
