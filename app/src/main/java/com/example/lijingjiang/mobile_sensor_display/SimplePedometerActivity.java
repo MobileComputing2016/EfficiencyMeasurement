@@ -218,7 +218,8 @@ public class SimplePedometerActivity extends Activity
         /**
          * Get current time stamp to calculate the elapsed time
          */
-        date = Calendar.getInstance().getTime();
+//        date = Calendar.getInstance().getTime();
+        date = new Date();
 
         startButton.setEnabled(false);
         stopButton.setEnabled(true);
@@ -276,7 +277,7 @@ public class SimplePedometerActivity extends Activity
      * When the end button is pressed, execute this function
      */
     public void stopCollection(View view) {
-        Date mostRecentTime = Calendar.getInstance().getTime();
+        Date mostRecentTime = new Date();
         long timeElapsed = mostRecentTime.getTime() - date.getTime();
 
         startButton.setEnabled(true);
