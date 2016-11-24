@@ -9,23 +9,25 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:orientation="vertical"
-    tools:context="com.example.lijingjiang.mobile_sensor_display.SimplePedometerActivity">
+    tools:context="com.example.lijingjiang.mobile_sensor_display.SimplePedometerActivity"
+    android:weightSum="1">
 
     <TextView
         android:id="@+id/steps"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="275dp"
+        android:layout_height="79dp"
         android:textSize="30sp"
         />
 
-
     <LinearLayout
         android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_width="290dp"
+        android:layout_height="56dp"
+        android:weightSum="1"
+        android:layout_weight="0.15">
         <TextView
             android:layout_width="177dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:ems="10"
             android:id="@+id/result_field"
             android:text="@string/zero"
@@ -37,28 +39,42 @@
 
         <TextView
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="99dp"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:text="@string/unit_meters"
             android:id="@+id/units_text"
             android:layout_alignParentBottom="true"
             android:layout_alignEnd="@+id/result_field"
-            android:textSize="30sp" />
+            android:textSize="30sp"
+            android:layout_weight="0.89" />
     </LinearLayout>
 
-    <Button
-        android:id="@+id/start_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/start_exercise"
-        android:onClick="startCollection"
-     />
-
-    <Button
-        android:id="@+id/stop_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/stop_exercise"
-        android:onClick="stopCollection"
+    <TextView
+        android:id="@+id/hr"
+        android:layout_width="275dp"
+        android:layout_height="79dp"
+        android:textSize="30sp"
         />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="95dp"
+        android:layout_weight="0.32">
+
+        <Button
+            android:id="@+id/start_button"
+            android:layout_width="153dp"
+            android:layout_height="105dp"
+            android:text="@string/start_exercise"
+            android:onClick="startCollection" />
+
+        <Button
+            android:id="@+id/stop_button"
+            android:layout_width="163dp"
+            android:layout_height="102dp"
+            android:text="@string/stop_exercise"
+            android:onClick="stopCollection" />
+    </LinearLayout>
+
 </LinearLayout>

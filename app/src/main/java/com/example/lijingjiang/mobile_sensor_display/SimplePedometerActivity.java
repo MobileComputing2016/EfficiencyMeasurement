@@ -18,9 +18,13 @@ package com.example.lijingjiang.mobile_sensor_display;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.IntentSender;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -31,6 +35,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -40,8 +45,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.google.android.apps.simplepedometer.R;
+import android.bluetooth.BluetoothGattService;
+import android.bluetooth.BluetoothGattCharacteristic;
+import com.example.lijingjiang.mobile_sensor_display.R;
 import com.google.android.gms.common.api.GoogleApiClient;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -51,12 +57,19 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import android.os.Handler;
+import android.os.Message;
+
+import java.util.List;
+import java.util.UUID;
 
 public class SimplePedometerActivity extends Activity
         implements SensorEventListener, StepListener, ConnectionCallbacks,
         OnConnectionFailedListener,
         com.google.android.gms.location.LocationListener {
+    private Activity a = this;
     /**
      * To calculate the elapsed time during calculation
      */
@@ -67,7 +80,6 @@ public class SimplePedometerActivity extends Activity
      */
     private Button startButton;
     private Button stopButton;
-
     /**
      * The following fields are Used for pedometer
      */
@@ -75,9 +87,14 @@ public class SimplePedometerActivity extends Activity
     private SensorManager sensorManager;
     private Sensor accelerometer;
 
+    private TextView distanceResultView;
+
+    private static final String TEXT_HR = "Heart Rate (bpm): ";
+    private int hr = 42;
+    private TextView hrResultView;
+
     private static final String TEXT_NUM_STEPS = "Number of Steps: ";
     private int numSteps = 0;
-
     private TextView stepsResultView;
 
     /**
@@ -88,7 +105,6 @@ public class SimplePedometerActivity extends Activity
 
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
 
-    private TextView distanceResultView;
     private double accumulatedLocationCalculatedFromGoogle = 0.0;
 
     private GoogleApiClient mGoogleApiClient;
@@ -107,6 +123,35 @@ public class SimplePedometerActivity extends Activity
     private long minTimeMs = 100;
     private float minDistanceMeters = 0.1f;
 
+    /** The following fields will be used with bluetooth hr collection **/
+    String mDeviceAddress = "00:22:D0:BD:25:8E";
+    UUID mServiceUUID = UUID.fromString("0000180d-0000-1000-8000-00805f9b34fb");
+    UUID mCharacteristicUUID = UUID.fromString("00002a37-0000-1000-8000-00805f9b34fb");
+    private BluetoothLeService mBluetoothLeService;
+    private final static String TAG = "PolarHRListener";
+    // Code to manage Service lifecycle.
+    private final ServiceConnection mServiceConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder service) {
+            mBluetoothLeService = ((BluetoothLeService.LocalBinder) service).getService();
+            if (!mBluetoothLeService.initialize()) {
+                Log.e(TAG, "Unable to initialize Bluetooth");
+                finish();
+            }
+            // Automatically connects to the device upon successful start-up initialization.
+            mBluetoothLeService.connect(mDeviceAddress);
+            registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            mBluetoothLeService = null;
+        }
+    };
+
+    Handler mHandler;
+    int mUpdatePeriodMillis = 1000;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         /**
@@ -128,16 +173,18 @@ public class SimplePedometerActivity extends Activity
         /**
          * Attach UI objects
          */
-        distanceResultView = (TextView) findViewById(R.id.result_field);
-        stepsResultView = (TextView) findViewById(R.id.steps);
+        hrResultView = (TextView) findViewById(R.id.hr);
+        hrResultView.setText(TEXT_HR + hr);
 
-        stepsResultView.setText(TEXT_NUM_STEPS + numSteps);
+        distanceResultView = (TextView) findViewById(R.id.result_field);
         distanceResultView.setText(
                 String.valueOf(accumulatedLocationCalculatedFromGoogle));
 
+        stepsResultView = (TextView) findViewById(R.id.steps);
+        stepsResultView.setText(TEXT_NUM_STEPS + numSteps);
+
         startButton = (Button) findViewById(R.id.start_button);
         stopButton = (Button) findViewById(R.id.stop_button);
-
         startButton.setEnabled(true);
         stopButton.setEnabled(false);
 
@@ -175,6 +222,21 @@ public class SimplePedometerActivity extends Activity
         //        locationManager.getLastKnownLocation(locationProvider);
         //        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
         //        minTimeMs, minDistanceMeters, locationListener);
+
+        mHandler =  new Handler() {
+            public void handleMessage(Message msg) {
+                //distanceResultView.setText(R.string.zero);
+                hrResultView.setText(TEXT_HR + hr);
+                stepsResultView.setText(TEXT_NUM_STEPS + numSteps);
+                //Start runnable here, maybe?
+                mHandler.sendMessageDelayed(Message.obtain(), mUpdatePeriodMillis);
+            }
+        };
+
+        mHandler.sendMessageDelayed(Message.obtain(), mUpdatePeriodMillis);
+
+        Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
+        bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
     }
 
 
@@ -187,7 +249,11 @@ public class SimplePedometerActivity extends Activity
          */
         numSteps = 0;
         accumulatedLocationCalculatedFromGoogle = 0;
-
+        registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
+        if (mBluetoothLeService != null) {
+            final boolean result = mBluetoothLeService.connect(mDeviceAddress);
+            Log.d(TAG, "Connect request result=" + result);
+        }
         stepsResultView.setText(TEXT_NUM_STEPS + numSteps);
         distanceResultView.setText(
                 String.valueOf(accumulatedLocationCalculatedFromGoogle));
@@ -218,7 +284,6 @@ public class SimplePedometerActivity extends Activity
         /**
          * Get current time stamp to calculate the elapsed time
          */
-//        date = Calendar.getInstance().getTime();
         date = new Date();
 
         startButton.setEnabled(false);
@@ -227,11 +292,13 @@ public class SimplePedometerActivity extends Activity
         /**
          * Reset all data
          */
+        hr = 0;
         numSteps = 0;
         accumulatedLocationCalculatedFromGoogle = 0;
 
-        stepsResultView.setText(TEXT_NUM_STEPS + numSteps);
         distanceResultView.setText(R.string.zero);
+        hrResultView.setText(TEXT_HR + hr);
+        stepsResultView.setText(TEXT_NUM_STEPS + numSteps);
 
         /**
          * When click the start button, register the sensor and start google
@@ -264,10 +331,10 @@ public class SimplePedometerActivity extends Activity
          * The following toast will indicate that the user has provided the permission,
          * and the app can get the location information now
          */
-        Toast
-                .makeText(this, currentLatitude + " WORKS " + currentLongitude + "",
-                        Toast.LENGTH_LONG)
-                .show();
+        //Toast
+        //       .makeText(this, currentLatitude + " WORKS " + currentLongitude + "",
+        //                Toast.LENGTH_LONG)
+         //       .show();
 
         LocationServices.FusedLocationApi.requestLocationUpdates(
                 mGoogleApiClient, mLocationRequest, this);
@@ -404,12 +471,49 @@ public class SimplePedometerActivity extends Activity
         distanceResultView.setText(
                 four.format(accumulatedLocationCalculatedFromGoogle));
 
-        Toast
-                .makeText(this, "moved: " + accumulatedLocationCalculatedFromGoogle,
-                        Toast.LENGTH_SHORT)
-                .show();
+        //Toast
+        //        .makeText(this, "moved: " + accumulatedLocationCalculatedFromGoogle,
+        //                Toast.LENGTH_SHORT)
+        //        .show();
 
 
         previousLocation = location;
+    }
+    // Handles various events fired by the Service.
+    // ACTION_GATT_CONNECTED: connected to a GATT server.
+    // ACTION_GATT_DISCONNECTED: disconnected from a GATT server.
+    // ACTION_GATT_SERVICES_DISCOVERED: discovered GATT services.
+    // ACTION_DATA_AVAILABLE: received data from the device.  This can be a result of read
+    //                        or notification operations.
+
+    private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
+            } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
+
+            } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
+                for (BluetoothGattService gattService :mBluetoothLeService.getSupportedGattServices()){
+                    Log.i("polar", gattService.getUuid().toString());
+                    for (BluetoothGattCharacteristic gC:gattService.getCharacteristics()){
+                        if (gC.getUuid().equals(mCharacteristicUUID)){
+                            mBluetoothLeService.setCharacteristicNotification(gC, true);
+                        }
+                    }
+                }
+            } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
+                hr  = Integer.valueOf(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
+            }
+        }
+    };
+
+    private static IntentFilter makeGattUpdateIntentFilter() {
+        final IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
+        intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);
+        intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED);
+        intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE);
+        return intentFilter;
     }
 }

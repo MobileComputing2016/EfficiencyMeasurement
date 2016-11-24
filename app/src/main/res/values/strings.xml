@@ -3,6 +3,9 @@
     <string name="start_exercise">Start Tracking Exercise Efficiency</string>
     <string name="stop_exercise">Stop Tracking Exercise Efficiency</string>
     <string name="zero">0.00</string>
-
+    <string name="blenotsupported">Bluetooth Low Energy not supported.</string>
+    <string name="bluetoothnotsupported">Bluetooth not supported.</string>
     <string name="unit_meters">Meters</string>
+    <string name="connected">Connected to Polar HR Sensor</string>
+    <string name="disconnected">Lost Connection to Polar HR Sensor</string>
 </resources>

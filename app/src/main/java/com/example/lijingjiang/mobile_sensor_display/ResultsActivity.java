@@ -4,7 +4,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.TextView;
 
-import com.google.android.apps.simplepedometer.R;
+import com.example.lijingjiang.mobile_sensor_display.R;
 import com.google.android.gms.vision.text.Text;
 
 import java.text.DecimalFormat;
