@@ -4,6 +4,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.TextView;
 
+import org.eazegraph.lib.charts.BarChart;
+import org.eazegraph.lib.models.BarModel;
 import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
@@ -13,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 public class VisualizationActivity extends AppCompatActivity {
 
@@ -25,8 +28,7 @@ public class VisualizationActivity extends AppCompatActivity {
         int type = getIntent().getIntExtra("type",0);
 
         textView = (TextView) findViewById(R.id.efficiency_array_result);
-
-        ArrayList<Float> result;
+        ArrayList<Float> result = new ArrayList<>();
         switch (type){
             case 1:
                 result = readLastTenData("runningEfficiency");
@@ -41,6 +43,26 @@ public class VisualizationActivity extends AppCompatActivity {
                 textView.setText(result.toString());
                 break;
         }
+
+        // hard coded results
+        result.clear();
+        result.add(Float.valueOf("0.1"));
+        result.add(Float.valueOf("0.20"));
+        result.add(Float.valueOf("0.30"));
+        result.add(Float.valueOf("0.20"));
+        result.add(Float.valueOf("0.10"));
+        result.add(Float.valueOf("0.60"));
+        result.add(Float.valueOf("0.20"));
+        result.add(Float.valueOf("0.30"));
+        result.add(Float.valueOf("0.60"));
+        result.add(Float.valueOf("0.40"));
+
+        BarChart mBarChart = (BarChart) findViewById(R.id.barchart);
+        for (int i = 0; i < 10; i++){
+            mBarChart.addBar(new BarModel((result.get(i)*100), 0xFF56B7F1));
+        }
+
+        mBarChart.startAnimation();
     }
 
 
