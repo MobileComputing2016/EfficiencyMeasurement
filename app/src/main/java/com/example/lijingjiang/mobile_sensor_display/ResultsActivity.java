@@ -95,7 +95,7 @@ public class ResultsActivity extends AppCompatActivity {
             System.out.println("the b is: " + b);
             System.out.println("the distance is: " + distances);
             System.out.println("the w is: " + w);
-            run_efficiency = 1.0 / (100000 * w);
+            run_efficiency = 1.0 * 100000.0 / (1.0 * w);
         }
 
         switch (efficiency_type) {
