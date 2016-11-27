@@ -36,6 +36,8 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.FloatRange;
+import android.support.annotation.IntegerRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -43,6 +45,7 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.bluetooth.BluetoothGattService;
@@ -56,8 +59,14 @@ import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListe
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import android.os.Handler;
 import android.os.Message;
@@ -75,11 +84,23 @@ public class SimplePedometerActivity extends Activity
      */
     Date date;
 
+    private ArrayList<Integer> hrList = new ArrayList<>();
+
     /**
      * Two buttons for user interaction
      */
-    private Button startButton;
-    private Button stopButton;
+    private Button startButtonRunning;
+    private Button stopButtonRunning;
+
+    private Button startButtonExercising;
+    private Button stopButtonExercising;
+
+    private Button startButtonSleeping;
+    private Button stopButtonSleeping;
+
+    private EditText ageField;
+    private EditText exerciseTypeField;
+
     /**
      * The following fields are Used for pedometer
      */
@@ -111,6 +132,8 @@ public class SimplePedometerActivity extends Activity
     private LocationRequest mLocationRequest;
     private double currentLatitude;
     private double currentLongitude;
+
+    private boolean startRecording = false;
 
     /**
      * The following field will be used when we enabled the gps sensor
@@ -178,15 +201,30 @@ public class SimplePedometerActivity extends Activity
 
         distanceResultView = (TextView) findViewById(R.id.result_field);
         distanceResultView.setText(
-                String.valueOf(accumulatedLocationCalculatedFromGoogle));
+                String.valueOf(accumulatedLocationCalculatedFromGoogle) + " Meters");
 
         stepsResultView = (TextView) findViewById(R.id.steps);
         stepsResultView.setText(TEXT_NUM_STEPS + numSteps);
 
-        startButton = (Button) findViewById(R.id.start_button);
-        stopButton = (Button) findViewById(R.id.stop_button);
-        startButton.setEnabled(true);
-        stopButton.setEnabled(false);
+        startButtonRunning = (Button) findViewById(R.id.start_running_button);
+        stopButtonRunning = (Button) findViewById(R.id.stop_running_button);
+        startButtonRunning.setEnabled(true);
+        stopButtonRunning.setEnabled(false);
+
+
+        startButtonExercising= (Button) findViewById(R.id.start_exercise_button);
+        stopButtonExercising = (Button) findViewById(R.id.stop_exercise_button);
+        startButtonExercising.setEnabled(true);
+        stopButtonExercising.setEnabled(false);
+
+        startButtonSleeping= (Button) findViewById(R.id.start_sleep_button);
+        stopButtonSleeping= (Button) findViewById(R.id.stop_sleep_button);
+        startButtonSleeping.setEnabled(true);
+        stopButtonSleeping.setEnabled(false);
+
+
+        ageField = (EditText)findViewById(R.id.age_field);
+        exerciseTypeField = (EditText)findViewById(R.id.exercise_type);
 
         /**
          * Sensor initialization
@@ -256,7 +294,7 @@ public class SimplePedometerActivity extends Activity
         }
         stepsResultView.setText(TEXT_NUM_STEPS + numSteps);
         distanceResultView.setText(
-                String.valueOf(accumulatedLocationCalculatedFromGoogle));
+                String.valueOf(accumulatedLocationCalculatedFromGoogle) + " Meters");
 
         mGoogleApiClient.connect();
     }
@@ -279,15 +317,15 @@ public class SimplePedometerActivity extends Activity
     /**
      * When the start button is pressed, execute this function
      */
-    public void startCollection(View view) {
+    public void startCollection_Running(View view) {
 
         /**
          * Get current time stamp to calculate the elapsed time
          */
         date = new Date();
 
-        startButton.setEnabled(false);
-        stopButton.setEnabled(true);
+        startButtonRunning.setEnabled(false);
+        stopButtonRunning.setEnabled(true);
 
         /**
          * Reset all data
@@ -295,8 +333,9 @@ public class SimplePedometerActivity extends Activity
         hr = 0;
         numSteps = 0;
         accumulatedLocationCalculatedFromGoogle = 0;
+        startRecording = true;
 
-        distanceResultView.setText(R.string.zero);
+        distanceResultView.setText(R.string.zero + " Meters");
         hrResultView.setText(TEXT_HR + hr);
         stepsResultView.setText(TEXT_NUM_STEPS + numSteps);
 
@@ -340,15 +379,148 @@ public class SimplePedometerActivity extends Activity
                 mGoogleApiClient, mLocationRequest, this);
     }
 
+
+    public void startCollection_Exercising(View view) {
+
+        /**
+         * Get current time stamp to calculate the elapsed time
+         */
+        date = new Date();
+
+        startButtonExercising.setEnabled(false);
+        stopButtonExercising.setEnabled(true);
+
+        /**
+         * Reset all data
+         */
+        hr = 0;
+        numSteps = 0;
+        accumulatedLocationCalculatedFromGoogle = 0;
+        startRecording = true;
+
+        distanceResultView.setText(R.string.zero + " Meters");
+        hrResultView.setText(TEXT_HR + hr);
+        stepsResultView.setText(TEXT_NUM_STEPS + numSteps);
+
+        /**
+         * When click the start button, register the sensor and start google
+         * location service
+         */
+        sensorManager.registerListener(this, accelerometer,
+                SensorManager.SENSOR_DELAY_NORMAL);
+
+
+        /**
+         * The following code blocks is required by google api
+         */
+        if (ActivityCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_FINE_LOCATION) !=
+                PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(
+                        this, Manifest.permission.ACCESS_COARSE_LOCATION) !=
+                        PackageManager.PERMISSION_GRANTED) {
+
+            // TODO: Add function logic when user don't give the permission
+            return;
+        }
+        previousLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+
+
+        currentLatitude = previousLocation.getLatitude();
+        currentLongitude = previousLocation.getLongitude();
+
+        /**
+         * The following toast will indicate that the user has provided the permission,
+         * and the app can get the location information now
+         */
+        //Toast
+        //       .makeText(this, currentLatitude + " WORKS " + currentLongitude + "",
+        //                Toast.LENGTH_LONG)
+        //       .show();
+
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient, mLocationRequest, this);
+    }
+
+
+    public void startCollection_Sleeping(View view) {
+
+        /**
+         * Get current time stamp to calculate the elapsed time
+         */
+        date = new Date();
+
+        startButtonSleeping.setEnabled(false);
+        stopButtonSleeping.setEnabled(true);
+
+        /**
+         * Reset all data
+         */
+        hr = 0;
+        numSteps = 0;
+        accumulatedLocationCalculatedFromGoogle = 0;
+        startRecording = true;
+
+        distanceResultView.setText(R.string.zero + " Meters");
+        hrResultView.setText(TEXT_HR + hr);
+        stepsResultView.setText(TEXT_NUM_STEPS + numSteps);
+
+        /**
+         * When click the start button, register the sensor and start google
+         * location service
+         */
+        sensorManager.registerListener(this, accelerometer,
+                SensorManager.SENSOR_DELAY_NORMAL);
+
+
+        /**
+         * The following code blocks is required by google api
+         */
+        if (ActivityCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_FINE_LOCATION) !=
+                PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(
+                        this, Manifest.permission.ACCESS_COARSE_LOCATION) !=
+                        PackageManager.PERMISSION_GRANTED) {
+
+            // TODO: Add function logic when user don't give the permission
+            return;
+        }
+        previousLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+
+
+        currentLatitude = previousLocation.getLatitude();
+        currentLongitude = previousLocation.getLongitude();
+
+        /**
+         * The following toast will indicate that the user has provided the permission,
+         * and the app can get the location information now
+         */
+        //Toast
+        //       .makeText(this, currentLatitude + " WORKS " + currentLongitude + "",
+        //                Toast.LENGTH_LONG)
+        //       .show();
+
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient, mLocationRequest, this);
+    }
+
     /**
      * When the end button is pressed, execute this function
      */
-    public void stopCollection(View view) {
+    public void stopCollection_Running(View view) {
         Date mostRecentTime = new Date();
         long timeElapsed = mostRecentTime.getTime() - date.getTime();
 
-        startButton.setEnabled(true);
-        stopButton.setEnabled(false);
+        startButtonRunning.setEnabled(true);
+        stopButtonRunning.setEnabled(false);
+
+        startRecording = false;
+        double sum = 0;
+        for (int i = 0 ; i < hrList.size(); i++) {
+            sum += hrList.get(i);
+        }
+        double average = sum / hrList.size();
 
 
         /**
@@ -369,13 +541,109 @@ public class SimplePedometerActivity extends Activity
         intent.putExtra("google_distance_traveled",
                 accumulatedLocationCalculatedFromGoogle);
         intent.putExtra("time_elapsed", timeElapsed);
+        intent.putExtra("average_hr", average);
+
+        intent.putExtra("age_field", Integer.valueOf(ageField.getText().toString()));
+
+        intent.putExtra("efficiency_type", 1);
 
         startActivity(intent);
     }
 
 
+    public void stopCollection_Exercising(View view) {
+        Date mostRecentTime = new Date();
+        long timeElapsed = mostRecentTime.getTime() - date.getTime();
+
+        startButtonExercising.setEnabled(true);
+        stopButtonExercising.setEnabled(false);
 
 
+        startRecording = false;
+        double sum = 0;
+        for (int i = 0 ; i < hrList.size(); i++) {
+            sum += hrList.get(i);
+        }
+        double average = sum / hrList.size();
+        /**
+         * When clicking the stop button, unregister the sensor and disconnect the google service
+         */
+        sensorManager.unregisterListener(this);
+        if (mGoogleApiClient.isConnected()) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,
+                    this);
+            mGoogleApiClient.disconnect();
+        }
+
+        /**
+         * Passing the result to the result activity
+         */
+        Intent intent = new Intent(this, ResultsActivity.class);
+        intent.putExtra("num_steps", numSteps);
+        intent.putExtra("google_distance_traveled",
+                accumulatedLocationCalculatedFromGoogle);
+        intent.putExtra("time_elapsed", timeElapsed);
+        intent.putExtra("average_hr", average);
+
+
+
+        intent.putExtra("age_field", Integer.valueOf(ageField.getText().toString()));
+        intent.putExtra("type_field", Integer.valueOf(exerciseTypeField.getText().toString()));
+
+
+        intent.putExtra("efficiency_type", 2);
+
+        startActivity(intent);
+    }
+
+
+    public void stopCollection_Sleeping(View view) {
+        Date mostRecentTime = new Date();
+        long timeElapsed = mostRecentTime.getTime() - date.getTime();
+
+        startButtonSleeping.setEnabled(true);
+        stopButtonSleeping.setEnabled(false);
+
+        startRecording = false;
+        double sum = 0;
+        for (int i = 0 ; i < hrList.size(); i++) {
+            sum += hrList.get(i);
+        }
+        double average = sum / hrList.size();
+
+
+        /**
+         * When clicking the stop button, unregister the sensor and disconnect the google service
+         */
+        sensorManager.unregisterListener(this);
+        if (mGoogleApiClient.isConnected()) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,
+                    this);
+            mGoogleApiClient.disconnect();
+        }
+
+        /**
+         * Passing the result to the result activity
+         */
+        Intent intent = new Intent(this, ResultsActivity.class);
+        intent.putExtra("num_steps", numSteps);
+        intent.putExtra("google_distance_traveled",
+                accumulatedLocationCalculatedFromGoogle);
+        intent.putExtra("time_elapsed", timeElapsed);
+        intent.putExtra("average_hr", average);
+
+
+        intent.putExtra("age_field", Integer.valueOf(ageField.getText().toString()));
+
+
+        intent.putExtra("efficiency_type", 3);
+
+        double sleepEfficiency = SleepEfficiency(hrList, 2.25)[1];
+
+        intent.putExtra("sleep_efficiency", sleepEfficiency);
+
+        startActivity(intent);
+    }
     /**
      * The following three functions are required by accelerometer sensor
      */
@@ -469,7 +737,7 @@ public class SimplePedometerActivity extends Activity
         DecimalFormat four = new DecimalFormat("#0.0000");
 
         distanceResultView.setText(
-                four.format(accumulatedLocationCalculatedFromGoogle));
+                four.format(accumulatedLocationCalculatedFromGoogle) + " Meters");
 
         //Toast
         //        .makeText(this, "moved: " + accumulatedLocationCalculatedFromGoogle,
@@ -504,6 +772,10 @@ public class SimplePedometerActivity extends Activity
                 }
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
                 hr  = Integer.valueOf(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
+                if (startRecording) {
+                    System.out.println("updating hrlist: " + hrList);
+                    hrList.add(hr);
+                }
             }
         }
     };
@@ -516,4 +788,61 @@ public class SimplePedometerActivity extends Activity
         intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE);
         return intentFilter;
     }
+
+
+
+    // Rating is stored in data[0], efficiency is stored in data[1]
+    // We use rating to calculate average rating over several nights of sleep, enables us to find targetRating
+    // Save target rating for future implentation, right now, just set default targetRating to 2.25
+    public double[] SleepEfficiency (ArrayList<Integer> sleep, double targetRating) {
+        int LF = 0;
+        int HF = 0;
+        int window = 60;
+        int index = 0;
+        while (index+window < sleep.size()) {
+            List<Integer> subSleep = sleep.subList(index, index+window);
+            if (Collections.max(subSleep)-Collections.min(subSleep) < 9) {
+                LF++;
+            }
+            else {
+                HF++;
+            }
+            index = index+window;
+        }
+        List<Integer> subSleep = sleep.subList(index, sleep.size()-1);
+        if (Collections.max(subSleep)-Collections.min(subSleep) < 9) {
+            LF++;
+        }
+        else {
+            HF++;
+        }
+        double data[] = new double[2];
+        data[0] = LF/HF; //rating
+        data[1] = 1-(Math.abs(targetRating-data[0])/data[0]); //efficiency
+        return data;
+    }
+
+    public void visualizeRunningEfficiency(View view) {
+
+        Intent intent = new Intent(this, VisualizationActivity.class);
+        intent.putExtra("type", 1);
+        startActivity(intent);
+    }
+
+    public void visualizeExerciseEfficiency (View view) {
+
+
+        Intent intent = new Intent(this, VisualizationActivity.class);
+        intent.putExtra("type", 2);
+        startActivity(intent);
+    }
+
+    public void visualizeSleepEfficiency (View view) {
+
+
+        Intent intent = new Intent(this, VisualizationActivity.class);
+        intent.putExtra("type", 3);
+        startActivity(intent);
+    }
+
 }

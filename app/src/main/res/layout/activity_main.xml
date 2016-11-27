@@ -1,80 +1,159 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/activity_main"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:orientation="vertical"
-    tools:context="com.example.lijingjiang.mobile_sensor_display.SimplePedometerActivity"
-    android:weightSum="1">
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+   xmlns:tools="http://schemas.android.com/tools"
+   android:id="@+id/response_scroll"
+   android:layout_width="fill_parent"
+   android:layout_height="fill_parent"
+   android:scrollbars="vertical"
+    >
 
-    <TextView
-        android:id="@+id/steps"
-        android:layout_width="275dp"
-        android:layout_height="79dp"
-        android:textSize="30sp"
-        />
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/activity_main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:orientation="vertical"
+        tools:context="com.example.lijingjiang.mobile_sensor_display.SimplePedometerActivity"
+        android:weightSum="1">
 
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="290dp"
-        android:layout_height="56dp"
-        android:weightSum="1"
-        android:layout_weight="0.15">
+
+        <EditText
+            android:id="@+id/age_field"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="input your age"
+            android:inputType="textEmailAddress" />
+
+        <EditText
+            android:id="@+id/exercise_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="input your the exercise type"
+            android:inputType="textEmailAddress" />
+
         <TextView
-            android:layout_width="177dp"
-            android:layout_height="match_parent"
+            android:id="@+id/steps"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="30sp"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:ems="10"
             android:id="@+id/result_field"
             android:text="@string/zero"
             android:textAlignment="center"
             android:textSize="30sp"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentStart="true"
-            android:layout_marginBottom="39dp" />
+             />
 
         <TextView
+            android:id="@+id/hr"
             android:layout_width="wrap_content"
-            android:layout_height="99dp"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="@string/unit_meters"
-            android:id="@+id/units_text"
-            android:layout_alignParentBottom="true"
-            android:layout_alignEnd="@+id/result_field"
+            android:layout_height="wrap_content"
             android:textSize="30sp"
-            android:layout_weight="0.89" />
+            />
+
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            >
+
+            <Button
+                android:id="@+id/start_running_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/start_running"
+                android:onClick="startCollection_Running" />
+
+            <Button
+                android:id="@+id/stop_running_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/stop_running"
+                android:onClick="stopCollection_Running" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            >
+
+            <Button
+                android:id="@+id/start_exercise_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/start_exercise"
+                android:onClick="startCollection_Exercising" />
+
+            <Button
+                android:id="@+id/stop_exercise_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/stop_exercise"
+                android:onClick="stopCollection_Exercising" />
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            >
+
+            <Button
+                android:id="@+id/start_sleep_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/start_sleep"
+                android:onClick="startCollection_Sleeping" />
+
+            <Button
+                android:id="@+id/stop_sleep_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/stop_sleep"
+                android:onClick="stopCollection_Sleeping" />
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            >
+
+            <Button
+                android:id="@+id/visualize_running_efficiency_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/visualize_running"
+                android:onClick="visualizeRunningEfficiency" />
+
+            <Button
+                android:id="@+id/visualize_exercise_efficiency_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/visualize_exercising"
+                android:onClick="visualizeExerciseEfficiency" />
+
+
+            <Button
+                android:id="@+id/visualize_sleep_efficiency_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/visualize_sleeping"
+                android:onClick="visualizeSleepEfficiency" />
+        </LinearLayout>
+
+
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/hr"
-        android:layout_width="275dp"
-        android:layout_height="79dp"
-        android:textSize="30sp"
-        />
-
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="wrap_content"
-        android:layout_height="95dp"
-        android:layout_weight="0.32">
-
-        <Button
-            android:id="@+id/start_button"
-            android:layout_width="153dp"
-            android:layout_height="105dp"
-            android:text="@string/start_exercise"
-            android:onClick="startCollection" />
-
-        <Button
-            android:id="@+id/stop_button"
-            android:layout_width="163dp"
-            android:layout_height="102dp"
-            android:text="@string/stop_exercise"
-            android:onClick="stopCollection" />
-    </LinearLayout>
-
-</LinearLayout>
+</ScrollView>

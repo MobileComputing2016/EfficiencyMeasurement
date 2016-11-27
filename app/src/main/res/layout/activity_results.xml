@@ -23,25 +23,29 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="30sp"
+
         />
     <TextView
         android:id="@+id/time_result"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="30sp"
+
         />
 
+
     <TextView
-        android:id="@+id/cadence"
+        android:id="@+id/average_hr"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="30sp"
         />
 
     <TextView
-        android:id="@+id/stride"
+        android:id="@+id/efficiency"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="30sp"
         />
+
 </LinearLayout>
