@@ -82,6 +82,8 @@ public class ResultsActivity extends AppCompatActivity {
         r_max = 208 - 0.7 * age;
         if (efficiency_type == 2) {
             efficiency_value = Math.abs((average/r_max) - measurements[type - 1])/measurements[type - 1];
+            double ratio = r_max / (r_max - getAgeRest(age) * 1.0);
+            efficiency_value = 1 - efficiency_value * ratio;
         }
 
 

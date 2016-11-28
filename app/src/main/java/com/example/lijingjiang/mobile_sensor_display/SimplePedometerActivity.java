@@ -327,6 +327,12 @@ public class SimplePedometerActivity extends Activity
         startButtonRunning.setEnabled(false);
         stopButtonRunning.setEnabled(true);
 
+        startButtonExercising.setEnabled(false);
+        stopButtonExercising.setEnabled(false);
+
+        startButtonSleeping.setEnabled(false);
+        stopButtonSleeping.setEnabled(false);
+
         /**
          * Reset all data
          */
@@ -389,6 +395,12 @@ public class SimplePedometerActivity extends Activity
 
         startButtonExercising.setEnabled(false);
         stopButtonExercising.setEnabled(true);
+
+        startButtonRunning.setEnabled(false);
+        stopButtonRunning.setEnabled(false);
+
+        startButtonSleeping.setEnabled(false);
+        stopButtonSleeping.setEnabled(false);
 
         /**
          * Reset all data
@@ -453,6 +465,13 @@ public class SimplePedometerActivity extends Activity
         startButtonSleeping.setEnabled(false);
         stopButtonSleeping.setEnabled(true);
 
+
+        startButtonRunning.setEnabled(false);
+        stopButtonRunning.setEnabled(false);
+
+        startButtonExercising.setEnabled(false);
+        startButtonExercising.setEnabled(false);
+
         /**
          * Reset all data
          */
@@ -515,6 +534,12 @@ public class SimplePedometerActivity extends Activity
         startButtonRunning.setEnabled(true);
         stopButtonRunning.setEnabled(false);
 
+        startButtonExercising.setEnabled(true);
+        stopButtonExercising.setEnabled(false);
+
+        startButtonSleeping.setEnabled(true);
+        stopButtonSleeping.setEnabled(false);
+
         startRecording = false;
         double sum = 0;
         for (int i = 0 ; i < hrList.size(); i++) {
@@ -557,6 +582,13 @@ public class SimplePedometerActivity extends Activity
 
         startButtonExercising.setEnabled(true);
         stopButtonExercising.setEnabled(false);
+
+        startButtonSleeping.setEnabled(true);
+        stopButtonSleeping.setEnabled(false);
+
+
+        startButtonRunning.setEnabled(true);
+        stopButtonRunning.setEnabled(false);
 
 
         startRecording = false;
@@ -604,6 +636,12 @@ public class SimplePedometerActivity extends Activity
         startButtonSleeping.setEnabled(true);
         stopButtonSleeping.setEnabled(false);
 
+        startButtonExercising.setEnabled(true);
+        stopButtonExercising.setEnabled(false);
+
+        startButtonRunning.setEnabled(true);
+        stopButtonRunning.setEnabled(false);
+
         startRecording = false;
         double sum = 0;
         for (int i = 0 ; i < hrList.size(); i++) {
@@ -633,7 +671,6 @@ public class SimplePedometerActivity extends Activity
         intent.putExtra("average_hr", average);
 
 
-        intent.putExtra("age_field", Integer.valueOf(ageField.getText().toString()));
 
 
         intent.putExtra("efficiency_type", 3);

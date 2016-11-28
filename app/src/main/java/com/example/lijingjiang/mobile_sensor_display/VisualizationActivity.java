@@ -19,7 +19,6 @@ import java.util.List;
 
 public class VisualizationActivity extends AppCompatActivity {
 
-    TextView textView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -27,38 +26,36 @@ public class VisualizationActivity extends AppCompatActivity {
 
         int type = getIntent().getIntExtra("type",0);
 
-        textView = (TextView) findViewById(R.id.efficiency_array_result);
         ArrayList<Float> result = new ArrayList<>();
         switch (type){
             case 1:
                 result = readLastTenData("runningEfficiency");
-                textView.setText(result.toString());
                 break;
             case 2:
                 result = readLastTenData("exerciseEfficiency");
-                textView.setText(result.toString());
                 break;
             case 3:
                 result = readLastTenData("sleepingEfficiency");
-                textView.setText(result.toString());
+                result.clear();
+                result.add(Float.valueOf("0.1"));
+                result.add(Float.valueOf("0.20"));
+                result.add(Float.valueOf("0.30"));
+                result.add(Float.valueOf("0.20"));
+                result.add(Float.valueOf("0.10"));
+                result.add(Float.valueOf("0.60"));
+                result.add(Float.valueOf("0.20"));
+                result.add(Float.valueOf("0.30"));
+                result.add(Float.valueOf("0.60"));
+                result.add(Float.valueOf("0.40"));
                 break;
         }
 
-        // hard coded results
-        result.clear();
-        result.add(Float.valueOf("0.1"));
-        result.add(Float.valueOf("0.20"));
-        result.add(Float.valueOf("0.30"));
-        result.add(Float.valueOf("0.20"));
-        result.add(Float.valueOf("0.10"));
-        result.add(Float.valueOf("0.60"));
-        result.add(Float.valueOf("0.20"));
-        result.add(Float.valueOf("0.30"));
-        result.add(Float.valueOf("0.60"));
-        result.add(Float.valueOf("0.40"));
 
         BarChart mBarChart = (BarChart) findViewById(R.id.barchart);
-        for (int i = 0; i < 10; i++){
+        for (int i = 0; i < result.size(); i++){
+            if (result.get(i) == null) {
+                continue;
+            }
             mBarChart.addBar(new BarModel((result.get(i)*100), 0xFF56B7F1));
         }
 
